@@ -15,14 +15,9 @@ def main():
 
     ham_counts = sum(y_train)
     spam_counts = len(y_train) - ham_counts
-    
-    #X_ham = np.empty([1, ham_counts]).flatten()
-    #X_spam = np.empty([1, spam_counts]).flatten()
-
 
     X_ham = []
     X_spam = []
-
 
     for i in range(len(X_train)):
         if y_train[i] == 1:
@@ -30,15 +25,33 @@ def main():
         else:
             X_ham.append(X_train[i])
 
-    #print(f"X_ham: {X_ham}")
-    #print(f"X_spam: {X_spam}")
-
     X_ham = remove_punctuations(X_ham)
     X_spam = remove_punctuations(X_spam)
 
-    vectorizer = CountVectorizer(ngram_range=(1,1), min_df=0.001, stop_words=ENGLISH_STOP_WORDS)
-    print(X_ham[0])
-    
+    vectorizer_for_ham = CountVectorizer(ngram_range=(1,1), min_df=0.001, stop_words=ENGLISH_STOP_WORDS)
+    vectorizer_for_spam = CountVectorizer(ngram_range=(1,1), min_df=0.001, stop_words=ENGLISH_STOP_WORDS)
+
+    ham_words = vectorizer_for_ham.fit_transform(X_ham)
+    spam_words = vectorizer_for_spam.fit_transform(X_spam)
+
+    # arrays contains frequency of each word for each sentence (each column is word, each row is sentence)
+    # it is transposed because reaching to row is easier than reaching to column
+    ham_array = ham_words.transpose().toarray()
+    spam_array = spam_words.transpose().toarray()
+
+    # these dictionaries contains words and their frequencies seperately (ham and spam). 
+    ham_dict = create_dict(vectorizer_for_ham.get_feature_names(), ham_array)
+    spam_dict = create_dict(vectorizer_for_spam.get_feature_names(), spam_array)
+
+
+def create_dict(features, freq_array):
+    dict = {}
+    for i in range(len(features)):
+        word = features[i]
+        freq = sum(freq_array[i])
+        dict[word] = freq
+    return dict
+
 
 def remove_punctuations(data):
     for i in range(len(data)):
